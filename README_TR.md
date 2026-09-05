@@ -85,10 +85,31 @@ Güncellemelerin ve düzeltmelerin detaylı geçmişi için lütfen [CHANGELOG_T
 ### Mekanik Altyapı
 - **3 Boyutlu Yazdırılan Pan-Tilt Sistemi**: [MakerWorld - Pan Tilt Servo Antenna Tracker MG996R](https://makerworld.com/en/models/973248-pan-tilt-servo-antenna-tracker-mg996r#profileId-945437)
 
-### Devre Şeması (Schematic)
+## 📸 Sistem Donanımı ve Saha Kurulumu (System Hardware & Field Deployment)
+
 <div align="center">
-  <img src="images/Schematic.svg" width="700" alt="Devre Şeması">
-  <p><i>Sistem Elektrik Bağlantı Şeması - STM32F401, HC-05, MG996R Servolar</i></p>
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <img src="images/camera_and_power_supply.jpeg" width="100%" alt="Aktif Optik Sensör ve Test Masası"><br>
+        <b>Aktif Optik Sensör, Güç Regülasyonu ve STM32 Kontrol İstasyonu</b>
+      </td>
+      <td align="center" width="50%">
+        <img src="images/pan_tilt_mechanism.jpeg" width="80%" alt="2 Eksenli Pan-Tilt Gimbal Mekanizması"><br>
+        <b>2 Eksenli Hassas Pan-Tilt Gimbal Mekanizması</b>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="50%">
+        <img src="images/all_components_setup.jpeg" width="80%" alt="Mikrodenetleyici Mantık Bağlantıları"><br>
+        <b>Mikrodenetleyici Mantık Bağlantıları, ST-Link ve Telemetri Hattı</b>
+      </td>
+      <td align="center" width="50%">
+        <img src="images/Schematic.svg" width="100%" alt="Devre Şeması"><br>
+        <b>Devre Şeması ve Sinyal İletişim Mimarisi</b>
+      </td>
+    </tr>
+  </table>
 </div>
 
 ### Proje Dosya Yapısı (Project Structure)

@@ -86,10 +86,31 @@ Please see [CHANGELOG.md](CHANGELOG.md) for a detailed history of updates and fi
 - **3D Printed Pan-Tilt Mechanism**: [MakerWorld - Pan Tilt Servo Antenna Tracker MG996R](https://makerworld.com/en/models/973248-pan-tilt-servo-antenna-tracker-mg996r#profileId-945437)
 - Designed for MG996R servos with robust mounting
 
-### Circuit Schematic
+## 📸 System Hardware & Field Deployment
+
 <div align="center">
-  <img src="images/Schematic.svg" width="700" alt="Circuit Schematic">
-  <p><i>System Wiring Diagram - STM32F401, HC-05, MG996R Servos</i></p>
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <img src="images/camera_and_power_supply.jpeg" width="100%" alt="Active Optical Sensor & Bench Setup"><br>
+        <b>Active Optical Sensor, Power Regulation & STM32 Controller Setup</b>
+      </td>
+      <td align="center" width="50%">
+        <img src="images/pan_tilt_mechanism.jpeg" width="80%" alt="2-Axis Pan-Tilt Gimbal"><br>
+        <b>2-Axis Precision Pan-Tilt Gimbal Mechanism</b>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="50%">
+        <img src="images/all_components_setup.jpeg" width="80%" alt="Microcontroller Logic & Interfacing"><br>
+        <b>Microcontroller Logic Wiring, ST-Link Debugger & Telemetry Interface</b>
+      </td>
+      <td align="center" width="50%">
+        <img src="images/Schematic.svg" width="100%" alt="Circuit Schematic"><br>
+        <b>Circuit Schematic & Signal Routing</b>
+      </td>
+    </tr>
+  </table>
 </div>
 
 ### Project Structure
