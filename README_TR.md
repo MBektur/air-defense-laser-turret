@@ -33,6 +33,15 @@ Donanım tarafında ise STM32, kamerayı etkili bir şekilde hedefin merkezinde 
 *Not: Bu sistem Teknofest yarışmaları ve hassas optik gimbal sistemleri için geliştirilmiş ileri düzey bir prototip niteliğindedir.*
 
 ## Demo Videoları
+
+<div align="center">
+  <h3>🏆 <a href="https://www.youtube.com/watch?v=ou6Uf3Ik7QI">2026 Çelikkubbe Hava Savunma Sistemleri Yarışması | Başvuru ID: 5208679</a></h3>
+  <a href="https://www.youtube.com/watch?v=ou6Uf3Ik7QI">
+    <img src="https://img.youtube.com/vi/ou6Uf3Ik7QI/maxresdefault.jpg" width="100%" alt="2026 Çelikkubbe Hava Savunma Sistemleri Yarışması | Başvuru ID: 5208679">
+  </a>
+  <p><em>3. Aşama otonom hedef angajmanı, canlı IFF dost-düşman koruması ve hassas lazer takibini içeren resmi yarışma videosunu izlemek için görsele tıklayın.</em></p>
+</div>
+
 - [V0.1.0 Lazer Takip Demosu](https://www.youtube.com/shorts/czz0KMfvBXw) - Gerçek zamanlı lazer takip tanıtımı
 - [V0.1.5 Lazer Takip ve PID Demosu](https://www.youtube.com/watch?v=KGi6N0OxIrQ) - Geliştirilmiş PID tepkisi ile gerçek zamanlı takip
 - [V0.1.6 Manuel Test Modu](https://www.youtube.com/shorts/dynt_BvkDTA) -  Manuel kontrol paneli ve kalibrasyon

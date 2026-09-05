@@ -33,6 +33,15 @@ On the hardware side, the STM32 runs a **10kHz hardware DDA (Digital Differentia
 *Note: This is a prototype system developed towards Teknofest competitions and precision optical gimbal research.*
 
 ## Demo Videos
+
+<div align="center">
+  <h3>🏆 <a href="https://www.youtube.com/watch?v=ou6Uf3Ik7QI">2026 Çelikkubbe Hava Savunma Sistemleri Yarışması | Başvuru ID: 5208679</a></h3>
+  <a href="https://www.youtube.com/watch?v=ou6Uf3Ik7QI">
+    <img src="https://img.youtube.com/vi/ou6Uf3Ik7QI/maxresdefault.jpg" width="100%" alt="2026 Çelikkubbe Hava Savunma Sistemleri Yarışması | Başvuru ID: 5208679">
+  </a>
+  <p><em>Click the thumbnail above to watch the official competition video featuring Stage 3 autonomous engagement, live IFF friendly-protection, and precision laser tracking.</em></p>
+</div>
+
 - [V0.1.0 Laser Tracking Demo](https://www.youtube.com/shorts/czz0KMfvBXw) - Real-time laser tracking demonstration
 - [V0.1.5 Laser Tracking Demo](https://www.youtube.com/watch?v=KGi6N0OxIrQ) - Real-time laser tracking demonstration PID test
 - [V0.1.6 Manual Test Mode](https://www.youtube.com/shorts/dynt_BvkDTA) - Manual control and calibration
