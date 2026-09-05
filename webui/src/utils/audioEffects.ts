@@ -198,6 +198,57 @@ class SoundManager {
     osc.start(t);
     osc.stop(t + 0.35);
   }
+
+  // Futuristic Weapon Arming / Capacitor Charge Sound
+  public playWeaponArmSound() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    try {
+      const t = this.ctx.currentTime;
+      // 1. Rising Capacitor Charge Whine
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(260, t);
+      osc.frequency.exponentialRampToValueAtTime(1900, t + 0.45);
+
+      gain.gain.setValueAtTime(0.01, t);
+      gain.gain.linearRampToValueAtTime(0.14, t + 0.35);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.50);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.50);
+
+      // 2. High-Tech Confirmation Chime
+      setTimeout(() => {
+        if (!this.ctx) return;
+        const t2 = this.ctx.currentTime;
+        const chime = this.ctx.createOscillator();
+        const chimeGain = this.ctx.createGain();
+
+        chime.type = 'sine';
+        chime.frequency.setValueAtTime(1760, t2);
+        chime.frequency.setValueAtTime(2349, t2 + 0.08);
+
+        chimeGain.gain.setValueAtTime(0.12, t2);
+        chimeGain.gain.exponentialRampToValueAtTime(0.001, t2 + 0.25);
+
+        chime.connect(chimeGain);
+        chimeGain.connect(this.ctx.destination);
+
+        chime.start(t2);
+        chime.stop(t2 + 0.25);
+      }, 420);
+    } catch (e) {
+      console.warn('Could not play weapon arm sound:', e);
+    }
+  }
 }
 
 export const soundManager = new SoundManager();

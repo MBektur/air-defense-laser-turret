@@ -6,16 +6,19 @@ import { TelemetryPanel } from './components/TelemetryPanel';
 import { ControlCenter } from './components/ControlCenter';
 import { TacticalLog } from './components/TacticalLog';
 import { PidTuningModal } from './components/PidTuningModal';
+import { WeaponArmModal } from './components/WeaponArmModal';
 import {
   Crosshair,
   Wifi,
   Keyboard,
   Clock,
+  Flame,
 } from 'lucide-react';
 
 
 export function App() {
   const { telemetry, wsConnected, logs, sendCommand } = useGimbalSocket();
+  const [isWeaponModalOpen, setIsWeaponModalOpen] = useState<boolean>(true);
   const [isPidModalOpen, setIsPidModalOpen] = useState<boolean>(false);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -130,6 +133,15 @@ export function App() {
         {/* Right: Quick Action Modals */}
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setIsWeaponModalOpen(true)}
+            title="Silah Kurulum Protokolü & Brifing"
+            className="p-1.5 bg-red-950/70 hover:bg-red-900 border border-red-500/50 rounded text-red-300 text-xs font-mono flex items-center gap-1.5 transition-colors font-bold shadow-[0_0_10px_rgba(255,0,0,0.3)]"
+          >
+            <Flame className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+            <span className="hidden sm:inline">PROTOKOL</span>
+          </button>
+
+          <button
             onClick={() => setIsHelpOpen(!isHelpOpen)}
             title="Keyboard Shortcuts"
             className="p-1.5 bg-cyan-950/70 hover:bg-cyan-900 border border-cyan-500/30 rounded text-cyan-300 text-xs font-mono flex items-center gap-1.5 transition-colors"
@@ -211,7 +223,15 @@ export function App() {
         onSendCommand={sendCommand}
       />
 
-      {/* 4. Keyboard Shortcuts Modal */}
+      {/* 4. Weapon Arming & Interactive Tactical Briefing Modal (Opens on First Visit) */}
+      <WeaponArmModal
+        isOpen={isWeaponModalOpen}
+        onClose={() => setIsWeaponModalOpen(false)}
+        onArmWeapon={(armed) => sendCommand({ action: 'ARM_LASER', payload: { armed } })}
+        laserArmed={telemetry.laser_armed}
+      />
+
+      {/* 5. Keyboard Shortcuts Modal */}
       {isHelpOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <div className="hud-panel rounded-2xl w-full max-w-md p-6 tactical-corners border border-cyan-500/50 shadow-2xl flex flex-col gap-4 font-mono text-xs">
