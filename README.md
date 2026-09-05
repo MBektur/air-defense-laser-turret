@@ -24,8 +24,18 @@ A 2-axis laser gimbal tracking system combining desktop computer vision with rea
 This project is an experimental 2-axis laser gimbal tracking system that operates through a combination of computer vision and a real-time microcontroller. The system uses a PyQt6/Python-based desktop application to process camera feeds, detect targets (using either HSV color tracking or YOLO-based deep learning), and calculate position errors. These error coordinates are then sent over a high-speed serial connection (115200 baud) to an STM32F401 microcontroller.
 
 <div align="center">
-  <img src="images/webui_pid_tuning.png" width="55%" alt="PID Controller & Filter Tuning Modal">
-  <p><em>Live In-Browser PID Controller & Filter Parameter Calibration</em></p>
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <img src="images/webui_weapon_arm_modal.png" width="100%" alt="Tactical Weapon Arming Modal"><br>
+        <b>Tactical Weapon Arming & System Initialization Protocol</b>
+      </td>
+      <td align="center" width="50%">
+        <img src="images/webui_pid_tuning.png" width="100%" alt="PID Controller & Filter Tuning Modal"><br>
+        <b>Live In-Browser PID Calibration & Actuator Damping Tuning</b>
+      </td>
+    </tr>
+  </table>
 </div>
 
 On the hardware side, the STM32 runs a **10kHz hardware DDA (Digital Differential Analyzer) microstep pulse engine** alongside a **50Hz Incremental PID algorithm** to smoothly drive two **Makerbase MKS SERVO42C closed-loop stepper motors (`CR_vFOC`)**, effectively keeping the camera centered on the target with zero lost steps and high holding torque. The project features a modern PyQt6 GUI with real-time status monitoring, PID tuning, dual-mode manual control (tap-to-step & hold-to-spin), and dedicated keyboard controls.
@@ -95,31 +105,10 @@ Please see [CHANGELOG.md](CHANGELOG.md) for a detailed history of updates and fi
 - **3D Printed Pan-Tilt Mechanism**: [MakerWorld - Pan Tilt Servo Antenna Tracker MG996R](https://makerworld.com/en/models/973248-pan-tilt-servo-antenna-tracker-mg996r#profileId-945437)
 - Designed for MG996R servos with robust mounting
 
-## 📸 System Hardware & Field Deployment
-
+### Circuit Schematic & Architecture
 <div align="center">
-  <table>
-    <tr>
-      <td align="center" width="50%">
-        <img src="images/camera_and_power_supply.jpeg" width="100%" alt="Active Optical Sensor & Bench Setup"><br>
-        <b>Active Optical Sensor, Power Regulation & STM32 Controller Setup</b>
-      </td>
-      <td align="center" width="50%">
-        <img src="images/pan_tilt_mechanism.jpeg" width="80%" alt="2-Axis Pan-Tilt Gimbal"><br>
-        <b>2-Axis Precision Pan-Tilt Gimbal Mechanism</b>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="50%">
-        <img src="images/all_components_setup.jpeg" width="80%" alt="Microcontroller Logic & Interfacing"><br>
-        <b>Microcontroller Logic Wiring, ST-Link Debugger & Telemetry Interface</b>
-      </td>
-      <td align="center" width="50%">
-        <img src="images/Schematic.svg" width="100%" alt="Circuit Schematic"><br>
-        <b>Circuit Schematic & Signal Routing</b>
-      </td>
-    </tr>
-  </table>
+  <img src="images/Schematic.svg" width="700" alt="Circuit Schematic">
+  <p><i>System Wiring Diagram - STM32F401, MKS SERVO42C Closed-Loop Steppers, Logic Routing</i></p>
 </div>
 
 ### Project Structure
