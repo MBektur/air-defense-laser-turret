@@ -13,10 +13,20 @@
   🇬🇧 <a href="README.md">English</a> | 🇹🇷 <a href="README_TR.md">Türkçe</a>
 </div>
 
+<div align="center">
+  <img src="images/webui_command_center.png" width="100%" alt="Taktiksel WebUI Komuta Merkezi ve 3D Donanım İkizi">
+  <p><em>Fütüristik Hava Savunma Sistemi (HSS) C2 Komuta Kontrol Merkezi, Canlı Web Kamerası, Three.js 3D Donanım İkizi ve Taktik HUD Nişangahı</em></p>
+</div>
+
 Masaüstü bilgisayarlı görü (computer vision) ile gerçek zamanlı mikrodenetleyici donanım yürütmesini harmanlayan 2 eksenli (2-axis) lazer gimbal takip sistemi.
 
 ## Genel Bakış (Overview)
 Bu proje, bilgisayarlı görü ve gerçek zamanlı bir mikrodenetleyicinin birleşimi ile çalışan deneysel bir 2 eksenli lazer gimbal takip sistemidir. Sistem, kamera anlık görüntülerini işlemek, hedefleri algılamak (HSV renk takibi veya YOLO tabanlı derin öğrenme kullanarak) ve konum hatalarını hesaplamak için PyQt6/Python tabanlı bir masaüstü uygulaması kullanır. Hesaplanarak elde edilen bu hata koordinatları, daha sonra yüksek hızlı bir seri iletişim (115200 baud) üzerinden STM32F401 mikrodenetleyicisine iletilir.
+
+<div align="center">
+  <img src="images/webui_pid_tuning.png" width="55%" alt="PID Kontrol ve Filtre Ayar Paneli">
+  <p><em>Tarayıcı Üzerinden Canlı PID Kontrolörü ve Filtre Parametre Kalibrasyonu</em></p>
+</div>
 
 Donanım tarafında ise STM32, kamerayı etkili bir şekilde hedefin merkezinde tutabilmek için **10kHz donanımsal DDA (Digital Differential Analyzer) mikro-adım darbe üreteci** ve **50Hz Artımlı PID (Incremental PID) algoritması** çalıştırarak iki adet **Makerbase MKS SERVO42C kapalı çevrim step motoru (`CR_vFOC`)** sıfır adım kaybı ve yüksek tutma torkuyla kusursuzca sürer. Proje, gerçek zamanlı izleme, PID parametre ayarı, çift modlu manuel kontrol (tıkla-adım-at ve basılı-tut-döndür) ve bağımsız klavye kontrolü sunan modern bir PyQt6 arayüzüne sahiptir.
 

@@ -13,10 +13,20 @@
   🇬🇧 <a href="README.md">English</a> | 🇹🇷 <a href="README_TR.md">Türkçe</a>
 </div>
 
+<div align="center">
+  <img src="images/webui_command_center.png" width="100%" alt="Tactical WebUI Command Center & 3D Twin">
+  <p><em>Futuristic Air Defense Laser Turret (HSS) C2 Command & Control Center with Real-Time WebCam, Three.js 3D Digital Twin, and Tactical HUD Overlay</em></p>
+</div>
+
 A 2-axis laser gimbal tracking system combining desktop computer vision with real-time microcontroller hardware execution.
 
 ## Overview
 This project is an experimental 2-axis laser gimbal tracking system that operates through a combination of computer vision and a real-time microcontroller. The system uses a PyQt6/Python-based desktop application to process camera feeds, detect targets (using either HSV color tracking or YOLO-based deep learning), and calculate position errors. These error coordinates are then sent over a high-speed serial connection (115200 baud) to an STM32F401 microcontroller.
+
+<div align="center">
+  <img src="images/webui_pid_tuning.png" width="55%" alt="PID Controller & Filter Tuning Modal">
+  <p><em>Live In-Browser PID Controller & Filter Parameter Calibration</em></p>
+</div>
 
 On the hardware side, the STM32 runs a **10kHz hardware DDA (Digital Differential Analyzer) microstep pulse engine** alongside a **50Hz Incremental PID algorithm** to smoothly drive two **Makerbase MKS SERVO42C closed-loop stepper motors (`CR_vFOC`)**, effectively keeping the camera centered on the target with zero lost steps and high holding torque. The project features a modern PyQt6 GUI with real-time status monitoring, PID tuning, dual-mode manual control (tap-to-step & hold-to-spin), and dedicated keyboard controls.
 
