@@ -9,7 +9,6 @@ import { PidTuningModal } from './components/PidTuningModal';
 import {
   Crosshair,
   Wifi,
-  WifiOff,
   Keyboard,
   Clock,
 } from 'lucide-react';
@@ -120,8 +119,9 @@ export function App() {
                 <Wifi className="w-3.5 h-3.5" /> SECURE WS
               </span>
             ) : (
-              <span className="flex items-center gap-1 text-red-400 font-bold">
-                <WifiOff className="w-3.5 h-3.5" /> DISCONNECTED
+              <span className="flex items-center gap-1.5 text-cyan-300 font-bold bg-cyan-950/80 px-2.5 py-0.5 rounded border border-cyan-500/40">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                CLOUD DEMO ONLINE
               </span>
             )}
           </div>

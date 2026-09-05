@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HudOverlay } from './HudOverlay';
 import type { TargetDetection, CameraDevice } from '../types/telemetry';
 import {
@@ -15,6 +15,7 @@ import {
   RefreshCw,
   CheckCircle2,
   Radio,
+  Sparkles,
 } from 'lucide-react';
 import { soundManager } from '../utils/audioEffects';
 
@@ -52,18 +53,81 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
   fps,
   connected,
   cameraId = 0,
-  isCameraLive = false,
   flipMode = 'NONE',
-  availableCameras = [],
   onSwitchCamera,
   onSetFlipMode,
-  onRescanCameras,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [streamError, setStreamError] = useState<boolean>(false);
   const [showCamMenu, setShowCamMenu] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
+
+  // Webcam States
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasWebcamStream, setHasWebcamStream] = useState<boolean>(false);
+  const [webcamError, setWebcamError] = useState<string | null>(null);
+  const [browserDevices, setBrowserDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
+  const [useSyntheticFeed, setUseSyntheticFeed] = useState<boolean>(false);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Request browser webcam access
+  const startWebcam = useCallback(async (deviceId?: string) => {
+    setWebcamError(null);
+    try {
+      // Stop old stream if running
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+
+      const constraints: MediaStreamConstraints = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId } }
+          : {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: 'user',
+            },
+        audio: false,
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
+
+      setHasWebcamStream(true);
+      setUseSyntheticFeed(false);
+
+      // Enumerate all video input devices to populate device list
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter((d) => d.kind === 'videoinput');
+      setBrowserDevices(videoInputs);
+
+      if (!deviceId && videoInputs.length > 0) {
+        setSelectedDeviceId(videoInputs[0].deviceId);
+      }
+    } catch (err: any) {
+      console.warn('Webcam access failed or denied:', err);
+      setWebcamError(err.message || 'Kamera izni verilmedi');
+      setHasWebcamStream(false);
+      setUseSyntheticFeed(true);
+    }
+  }, []);
+
+  // Initialize webcam on mount
+  useEffect(() => {
+    startWebcam();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, [startWebcam]);
 
   const toggleFullscreen = () => {
     const el = document.getElementById('tactical-video-container');
@@ -85,27 +149,23 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
   const handleRescan = async () => {
     setIsScanning(true);
     soundManager.playClick();
-    if (onRescanCameras) {
-      onRescanCameras();
-    } else {
-      try {
-        await fetch('/api/cameras/scan', { method: 'POST' });
-      } catch (e) {
-        console.warn('Failed to trigger camera scan:', e);
-      }
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter((d) => d.kind === 'videoinput');
+      setBrowserDevices(videoInputs);
+    } catch (e) {
+      console.warn('Scan devices failed:', e);
     }
-    setTimeout(() => setIsScanning(false), 1200);
+    setTimeout(() => setIsScanning(false), 800);
   };
 
-  // Default camera fallback list if no active scan yet
-  const defaultCameras: CameraDevice[] = [
-    { id: 0, name: 'Kamera 0 (Dahili / USB Ana Kamera)', resolution: '1280x720', fps: 30, is_live: true },
-    { id: 1, name: 'Kamera 1 (Harici Gimbal / EO Kamera)', resolution: '1280x720', fps: 30, is_live: true },
-    { id: 2, name: 'Kamera 2 (USB Video Aygıtı)', resolution: '640x480', fps: 30, is_live: true },
-    { id: -1, name: 'Simülasyon / Test Akışı', resolution: '640x480', fps: 30, is_live: false },
-  ];
-
-  const cameraList = availableCameras.length > 0 ? availableCameras : defaultCameras;
+  const handleSelectDevice = (devId: string, idx: number) => {
+    setSelectedDeviceId(devId);
+    setUseSyntheticFeed(false);
+    startWebcam(devId);
+    if (onSwitchCamera) onSwitchCamera(idx);
+    setShowCamMenu(false);
+  };
 
   const flipOptions: Array<{ mode: 'NONE' | '180' | 'V' | 'H'; label: string }> = [
     { mode: 'NONE', label: 'Normal (0°)' },
@@ -114,38 +174,77 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
     { mode: 'V', label: 'Dikey Ters (V)' },
   ];
 
+  // CSS transform for flip modes
+  const getFlipTransform = () => {
+    switch (flipMode) {
+      case '180':
+        return 'rotate(180deg)';
+      case 'H':
+        return 'scaleX(-1)';
+      case 'V':
+        return 'scaleY(-1)';
+      default:
+        return 'none';
+    }
+  };
+
   return (
     <div
       id="tactical-video-container"
-      className="relative w-full aspect-video bg-black rounded-xl border border-cyan-500/30 overflow-hidden shadow-2xl flex items-center justify-center tactical-corners"
+      className="relative w-full aspect-video bg-[#030712] rounded-xl border border-cyan-500/30 overflow-hidden shadow-2xl flex items-center justify-center tactical-corners"
     >
-      {/* 1. Video Stream or Tactical Standby Graphic */}
-      {!streamError ? (
-        <img
-          src="/video_feed"
-          alt="EO/IR Optical Gimbal Feed"
-          onError={() => setStreamError(true)}
-          className="w-full h-full object-contain select-none"
-        />
-      ) : (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-[#050b14] sci-fi-grid">
-          <Crosshair className="w-16 h-16 text-cyan-500/40 animate-pulse mb-3" />
-          <div className="text-cyan-400 font-mono text-sm tracking-widest uppercase">
-            STANDBY // OPTICAL FEED OFFLINE
+      {/* 1. Live WebCam Video Stream */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        style={{ transform: getFlipTransform() }}
+        className={`w-full h-full object-cover select-none transition-transform duration-200 ${
+          hasWebcamStream && !useSyntheticFeed ? 'block' : 'hidden'
+        }`}
+      />
+
+      {/* 2. Synthetic Tactical Target Simulator Feed (Fallback when no webcam / user selected test feed) */}
+      {(!hasWebcamStream || useSyntheticFeed) && (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-[#040a16] relative overflow-hidden select-none">
+          {/* Animated tactical background grid */}
+          <div className="absolute inset-0 sci-fi-grid opacity-70" />
+          
+          {/* Animated concentric radar sweeps */}
+          <div className="absolute w-[420px] h-[420px] rounded-full border border-cyan-500/20 flex items-center justify-center animate-spin" style={{ animationDuration: '18s' }}>
+            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
           </div>
-          <div className="text-xs text-cyan-600 mt-1 font-mono">
-            CONNECT BACKEND SERVER OR LAUNCH CAMERA
+          <div className="absolute w-[260px] h-[260px] rounded-full border border-cyan-500/30" />
+          <div className="absolute w-[120px] h-[120px] rounded-full border border-cyan-500/40" />
+
+          {/* Central Target Reticle Indicator */}
+          <Crosshair className="w-20 h-20 text-cyan-400/70 animate-pulse relative z-10 mb-3" />
+
+          <div className="relative z-10 flex flex-col items-center gap-1.5 font-mono text-center px-4">
+            <div className="flex items-center gap-2 text-cyan-300 font-bold text-xs tracking-widest bg-cyan-950/80 px-3 py-1 rounded border border-cyan-500/40">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>SENTETİK TAKTİK KAMERA SİMÜLASYONU // AKTİF</span>
+            </div>
+            
+            <p className="text-[11px] text-cyan-500 max-w-sm mt-1">
+              {webcamError
+                ? 'Tarayıcı kamerası izni verilmedi. Canlı kameranızı görmek için izin verebilir veya aşağıdaki butonu kullanabilirsiniz.'
+                : 'Kendi canlı web kameranızı görmek için kamerayı başlatın:'}
+            </p>
+
+            <button
+              onClick={() => startWebcam()}
+              className="mt-2.5 px-4 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-black font-bold text-xs font-mono rounded-lg transition-all shadow-[0_0_15px_rgba(0,240,255,0.4)] flex items-center gap-1.5"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              CANLI WEB KAMERASINI BAŞLAT
+            </button>
           </div>
-          <button
-            onClick={() => setStreamError(false)}
-            className="mt-4 px-3 py-1 bg-cyan-950/60 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 text-xs font-mono rounded transition-colors"
-          >
-            RETRY FEED
-          </button>
         </div>
       )}
 
-      {/* 2. HUD Canvas Graphics Overlay */}
+      {/* 3. HUD Canvas Graphics Overlay (Nişangah, Yapay Ufuk, Pusula ve Hedef Kutuları) */}
       <HudOverlay
         pitch={pitch}
         yaw={yaw}
@@ -158,11 +257,11 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
         trackingMode={trackingMode}
       />
 
-      {/* 3. Scanline & Vignette Effect Layer */}
+      {/* 4. Scanline & Vignette Effect Layer */}
       <div className="absolute inset-0 scanlines pointer-events-none z-20" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/40 pointer-events-none z-20" />
 
-      {/* 4. Top Telemetry Status Bar inside Video */}
+      {/* 5. Top Telemetry Status Bar inside Video */}
       <div className="absolute top-3 left-4 right-4 flex items-center justify-between z-30 pointer-events-none">
         {/* Left Side: System & Mode Badges */}
         <div className="flex items-center gap-2">
@@ -199,13 +298,13 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
           >
             <Camera className="w-3.5 h-3.5 text-cyan-400" />
             <span>
-              {cameraId === -1 ? 'SİMÜLASYON' : isCameraLive ? `KAMERA ${cameraId} (CANLI)` : `KAMERA ${cameraId}`}
+              {hasWebcamStream && !useSyntheticFeed ? `WEB KAMERASI #${cameraId} (CANLI)` : 'SİMÜLASYON FEED'}
             </span>
           </button>
 
           {/* Comprehensive Camera Selection Popup Modal / Dropdown */}
           {showCamMenu && (
-            <div className="absolute right-0 top-9 w-80 bg-[#070e1c]/95 backdrop-blur-xl border border-cyan-500/60 rounded-xl p-3.5 shadow-2xl z-50 flex flex-col gap-3 font-mono text-xs text-cyan-200">
+            <div className="absolute right-0 top-9 w-84 bg-[#070e1c]/95 backdrop-blur-xl border border-cyan-500/60 rounded-xl p-3.5 shadow-2xl z-50 flex flex-col gap-3 font-mono text-xs text-cyan-200">
               {/* Header with Rescan Button */}
               <div className="flex items-center justify-between border-b border-cyan-500/30 pb-2">
                 <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-xs">
@@ -220,7 +319,7 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
                     className="p-1 bg-cyan-950 hover:bg-cyan-900 border border-cyan-500/40 rounded text-cyan-300 transition-colors flex items-center gap-1 text-[10px]"
                   >
                     <RefreshCw className={`w-3 h-3 ${isScanning ? 'animate-spin text-amber-400' : 'text-cyan-400'}`} />
-                    <span>{isScanning ? 'TARANIYOR...' : 'YENİDEN TARA'}</span>
+                    <span>{isScanning ? 'TARANIYOR...' : 'YENİLE'}</span>
                   </button>
                   <button
                     onClick={() => setShowCamMenu(false)}
@@ -233,34 +332,25 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
 
               {/* Dynamic Camera Devices List */}
               <div className="flex flex-col gap-1.5 max-h-52 overflow-y-auto pr-1">
-                {cameraList.map((cam) => {
-                  const isSelected = cameraId === cam.id;
+                {browserDevices.map((dev, idx) => {
+                  const isSelected = selectedDeviceId === dev.deviceId && !useSyntheticFeed;
                   return (
                     <button
-                      key={cam.id}
-                      onClick={() => {
-                        if (onSwitchCamera) onSwitchCamera(cam.id);
-                        setShowCamMenu(false);
-                      }}
-                      className={`p-2.5 rounded-lg text-left transition-all border flex items-center justify-between ${
+                      key={dev.deviceId || idx}
+                      onClick={() => handleSelectDevice(dev.deviceId, idx)}
+                      className={`p-2 rounded-lg text-left transition-all border flex items-center justify-between ${
                         isSelected
                           ? 'bg-cyan-950/90 border-cyan-400 text-cyan-100 glow-cyan font-bold'
                           : 'bg-black/40 border-cyan-500/20 hover:bg-cyan-950/50 text-cyan-400'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        {cam.id === -1 ? (
-                          <Radio className={`w-3.5 h-3.5 ${isSelected ? 'text-cyan-300' : 'text-cyan-600'}`} />
-                        ) : (
-                          <Camera className={`w-3.5 h-3.5 ${isSelected ? 'text-cyan-300' : 'text-cyan-600'}`} />
-                        )}
+                        <Camera className={`w-3.5 h-3.5 ${isSelected ? 'text-cyan-300' : 'text-cyan-600'}`} />
                         <div className="flex flex-col">
-                          <span className="text-[11px] leading-tight">{cam.name}</span>
-                          {cam.resolution && (
-                            <span className="text-[9px] text-cyan-500">
-                              {cam.resolution} @ {cam.fps || 30} FPS
-                            </span>
-                          )}
+                          <span className="text-[11px] leading-tight">
+                            {dev.label || `Kamera ${idx + 1} (Webcam)`}
+                          </span>
+                          <span className="text-[9px] text-cyan-500">Tarayıcı Canlı Akışı</span>
                         </div>
                       </div>
 
@@ -268,6 +358,28 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
                     </button>
                   );
                 })}
+
+                {/* Synthetic Simulator Option */}
+                <button
+                  onClick={() => {
+                    setUseSyntheticFeed(true);
+                    setShowCamMenu(false);
+                  }}
+                  className={`p-2 rounded-lg text-left transition-all border flex items-center justify-between ${
+                    useSyntheticFeed
+                      ? 'bg-cyan-950/90 border-cyan-400 text-cyan-100 glow-cyan font-bold'
+                      : 'bg-black/40 border-cyan-500/20 hover:bg-cyan-950/50 text-cyan-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Radio className="w-3.5 h-3.5 text-cyan-400" />
+                    <div className="flex flex-col">
+                      <span className="text-[11px] leading-tight">Sentetik Taktik Hedef Simülasyonu</span>
+                      <span className="text-[9px] text-cyan-500">Kamera Olmadan Test Akışı</span>
+                    </div>
+                  </div>
+                  {useSyntheticFeed && <CheckCircle2 className="w-4 h-4 text-cyan-300" />}
+                </button>
               </div>
 
               {/* Image Orientation Flip Selection */}
@@ -316,7 +428,7 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
         </div>
       </div>
 
-      {/* 5. Bottom Diagnostics Bar inside Video */}
+      {/* 6. Bottom Diagnostics Bar inside Video */}
       <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between z-30 pointer-events-none text-xs font-mono">
         <div className="bg-black/70 backdrop-blur-md px-3 py-1 rounded border border-cyan-500/30 text-cyan-300 flex items-center gap-3">
           <span>ΔX: <b className="text-white">{errorX > 0 ? `+${errorX}` : errorX}px</b></span>
@@ -325,8 +437,8 @@ export const VideoFeed: React.FC<VideoFeedProps> = ({
 
         <div className="bg-black/70 backdrop-blur-md px-3 py-1 rounded border border-cyan-500/30 text-cyan-400">
           EO/IR SENSOR:{' '}
-          <span className={isCameraLive ? 'text-green-400 font-bold' : 'text-amber-400 font-bold'}>
-            {isCameraLive ? `HARDWARE CAM ${cameraId} ACTIVE` : 'TACTICAL SIMULATION ACTIVE'}
+          <span className={hasWebcamStream && !useSyntheticFeed ? 'text-green-400 font-bold' : 'text-amber-400 font-bold'}>
+            {hasWebcamStream && !useSyntheticFeed ? 'BROWSER WEBCAM ONLINE' : 'SYNTHETIC RADAR FEED'}
           </span>
         </div>
       </div>
