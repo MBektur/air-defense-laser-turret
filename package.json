@@ -2,9 +2,12 @@
   "name": "lazer-gimbal-hss",
   "version": "2.0.0",
   "description": "TEKNOFEST HSS Lazer Gimbal Futuristic WebUI Command Center",
+  "workspaces": [
+    "webui"
+  ],
   "scripts": {
-    "dev": "cd webui && npm run dev",
-    "build": "cd webui && npm run build",
+    "dev": "npm run dev --prefix webui",
+    "build": "npm run build --prefix webui",
     "start": "./run_webui.sh"
   },
   "keywords": ["teknofest", "gimbal", "threejs", "fastapi", "opencv"],

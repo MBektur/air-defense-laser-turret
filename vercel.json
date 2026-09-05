@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd webui && npm install && npm run build",
-  "outputDirectory": "webui/dist",
-  "framework": "vite"
+  "installCommand": "npm install --prefix webui",
+  "buildCommand": "npm run build --prefix webui",
+  "outputDirectory": "webui/dist"
 }
